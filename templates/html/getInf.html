@@ -26,7 +26,7 @@
         }
 
         input[type="text"],
-        input[type="password"] {
+        input[type="id"] {
             width: 100%;
             padding: 6px 12px;
             border: 1px solid #ccc;
@@ -58,19 +58,24 @@
     <div class="col-xs-4">
     </div>
     <div class="col-xs-4">
-        <form role="form" method="POST" action="/signIn">
+        <form role="form" method="POST" action="/us/form/products/search">
             <div class="form-group">
-                <label>Email</label>
-                <input type="text" class="form-control" id="username" name="username"  />
+                <label>OfferId</label>
+                <input type="text" class="form-control" id="offerId" name="offerId"  />
             </div>
             <div class="form-group">
-                <label>Password</label>
-                <input type="password" class="form-control" id="password" name="password"  />
+                <label>Id</label>
+                <input type="text" class="form-control" id="id" name="id"  />
             </div>
-            <button type="submit" class="btn btn-default">Войти</button>
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" class="form-control" id="Name" name="Name"  />
+            </div>
+            <button type="submit" class="btn btn-default">Запросить</button>
         </form>
     </div>
     <div class="col-xs-4">
+        <a href="/us/form/inputFile" class="back-btn"> Отправить данные</a>
+
     </div>
-    <a href="/us/authentication" class="back-btn"> Регистрация</a>
 </div>

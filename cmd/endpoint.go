@@ -104,7 +104,8 @@ func (app *application) start(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-	} else {
+	}
+	if r.Method == http.MethodPost {
 		//if r.Method == http.MethodPost {
 		//body, err := ioutil.ReadAll(r.Body)
 		//if err != nil {
@@ -140,46 +141,65 @@ func (app *application) start(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(responseJSON)
 		return
-		//} else {
-		//	w.Header().Set("Allow", http.MethodGet)
-		//	http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-		//	return
 	}
 }
 
 func (app *application) search(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodPost {
-		body, err := ioutil.ReadAll(r.Body)
+	if r.Method == http.MethodGet {
+		files := []string{"./templates/html/getInf.html"}
+		tmp, err := template.ParseFiles(files...)
 		if err != nil {
 			app.serverError(w, err)
 			return
 		}
-		var requestData map[string]string
-		if err := json.Unmarshal(body, &requestData); err != nil {
+		err = tmp.Execute(w, nil)
+		if err != nil {
 			app.serverError(w, err)
 			return
 		}
-		offId := requestData["offerId"]
-		sellId := requestData["id"]
-		word := requestData["Name"]
+	}
+	if r.Method == http.MethodPost {
+		////body, err := ioutil.ReadAll(r.Body)
+		//if err != nil {
+		//	app.serverError(w, err)
+		//	return
+		//}
+		//var requestData map[string]string
+		//if err := json.Unmarshal(body, &requestData); err != nil {
+		//	app.serverError(w, err)
+		//	return
+		//}
+		//offId := requestData["offerId"]
+		//sellId := requestData["id"]
+		//word := requestData["Name"]
+		offId := r.FormValue("offerId")
+		sellId := r.FormValue("id")
+		word := r.FormValue("Name")
 		putInf, err := app.product.SearchInfo(offId, sellId, word)
 		if err != nil {
 			app.serverError(w, err)
 		}
 		fmt.Println(putInf)
-		responseJSON, err := json.Marshal(putInf)
+		//responseJSON, err := json.Marshal(putInf)
+		//if err != nil {
+		//	app.serverError(w, err)
+		//	return
+		//}
+
+		//w.Header().Set("Content-Type", "application/json")
+		//w.Write(responseJSON)
+		//return
+		files := []string{"./templates/html/parseInf.html"}
+		tmp, err := template.ParseFiles(files...)
 		if err != nil {
 			app.serverError(w, err)
 			return
 		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.Write(responseJSON)
-		return
-	} else {
-		w.Header().Set("Allow", http.MethodGet)
-		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-		return
+		err = tmp.Execute(w, putInf)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
 	}
 }
 
