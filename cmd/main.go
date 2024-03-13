@@ -18,7 +18,6 @@ type application struct {
 	Lis      postgres.ListProd
 	infoLog  *log.Logger
 	errorLog *log.Logger
-	//auth     postgres.Auth
 }
 
 var sessionMem *session.Session
@@ -26,7 +25,7 @@ var sessionMem *session.Session
 func main() {
 	dsn := flag.String("dsn", "user=postgres password=qwerty123 dbname=postgres sslmode=disable host=localhost port=5432", "Строка подключения к PostgreSQL")
 	flag.Parse()
-	addr := flag.String("addr", ":4001", "server")
+	addr := flag.String("addr", ":4002", "server")
 	flag.Parse()
 
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
@@ -45,7 +44,6 @@ func main() {
 		ans:      &postgres.Answer{},
 		Prod:     postgres.Prod{},
 		Lis:      postgres.ListProd{},
-		//	auth:     postgres.Auth{},
 	}
 	srv := &http.Server{
 		Addr:    *addr,

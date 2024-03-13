@@ -15,6 +15,10 @@ type Auth struct {
 	us int
 }
 
+//type Sign struct {
+//	user int
+//}
+
 type ListProd struct {
 	Products []Prod
 }
@@ -31,6 +35,15 @@ type Prod struct {
 	Name  string
 	Price int
 	Count int
+}
+
+func (s *ProductMod) CheckPassLogUser(user, pass string) (int, error) {
+	//sign := Sign{}
+	_, err := s.DB.Query("SELECT * FROM users WHERE email = $1 AND password_hash = $2", user, pass)
+	if err != nil {
+		return 1, err
+	}
+	return 0, err
 }
 
 func (s *ProductMod) InputInfo(email, password_hash string) (int, error) {

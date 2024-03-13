@@ -11,6 +11,44 @@ import (
 
 const COOKIE = "sessionId"
 
+func (app *application) signIn(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		files := []string{"./templates/html/sign.html"}
+		tmp, err := template.ParseFiles(files...)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+		err = tmp.Execute(w, nil)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+
+	}
+	email := r.FormValue("username")
+	password := r.FormValue("password")
+	rep, err := app.product.CheckPassLogUser(email, password)
+	if err != nil {
+		http.Error(w, "Ошибка входа пользователя\n\tПовторите попытку!", http.StatusInternalServerError)
+		http.Redirect(w, r, "/signIn", http.StatusSeeOther)
+	}
+	if rep == 0 {
+		sessionId := sessionMem.Init(email)
+		cookie := &http.Cookie{
+			Name:    COOKIE,
+			Value:   sessionId,
+			Expires: time.Now().Add(1 * time.Minute),
+		}
+		http.SetCookie(w, cookie)
+		http.Redirect(w, r, "/us/form/inputFile", http.StatusSeeOther)
+	} else {
+		http.Error(w, "Ошибка ввода данных пользователя\n\tПовторите попытку!", http.StatusInternalServerError)
+		//http.Redirect(w, r, "/us/authentication", http.StatusSeeOther)
+	}
+
+}
+
 func (app *application) authentication(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		files := []string{"./templates/html/login.html"}
@@ -34,7 +72,9 @@ func (app *application) authentication(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Ошибка регистрации пользователя\n\tПовторите попытку!", http.StatusInternalServerError)
 	}
 	if rep > 0 {
-		http.Error(w, "Пользователь с таким Email существует\n\tПовторите попытку!", http.StatusConflict)
+		http.Error(w, "Пользователь с таким Email существует\n\tПовторите попытку или осуществите вход!", http.StatusConflict)
+		http.Redirect(w, r, "/signIn", http.StatusSeeOther)
+		//return
 	} else {
 		sessionId := sessionMem.Init(email)
 		cookie := &http.Cookie{
@@ -43,7 +83,7 @@ func (app *application) authentication(w http.ResponseWriter, r *http.Request) {
 			Expires: time.Now().Add(1 * time.Minute),
 		}
 		http.SetCookie(w, cookie)
-		http.Redirect(w, r, "/us/inputFile", http.StatusSeeOther)
+		http.Redirect(w, r, "/us/form/inputFile", http.StatusSeeOther)
 	}
 }
 
