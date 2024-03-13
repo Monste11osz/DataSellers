@@ -3,6 +3,7 @@ package models
 type Users struct {
 	email         string
 	password_hash string
+	cookie_key    string
 }
 
 type Clients struct {

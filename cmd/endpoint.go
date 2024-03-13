@@ -26,27 +26,27 @@ func (app *application) signIn(w http.ResponseWriter, r *http.Request) {
 		}
 
 	}
-	email := r.FormValue("username")
-	password := r.FormValue("password")
-	rep, err := app.product.CheckPassLogUser(email, password)
-	if err != nil {
-		http.Error(w, "Ошибка входа пользователя\n\tПовторите попытку!", http.StatusInternalServerError)
-		http.Redirect(w, r, "/signIn", http.StatusSeeOther)
-	}
-	if rep == 0 {
-		sessionId := sessionMem.Init(email)
-		cookie := &http.Cookie{
-			Name:    COOKIE,
-			Value:   sessionId,
-			Expires: time.Now().Add(1 * time.Minute),
+	if r.Method == http.MethodPost {
+		email := r.FormValue("username")
+		password := r.FormValue("password")
+		rep, key, err := app.product.CheckPassLogUser(email, password)
+		if err != nil {
+			http.ServeFile(w, r, "./templates/html/errlog.html")
 		}
-		http.SetCookie(w, cookie)
-		http.Redirect(w, r, "/us/form/inputFile", http.StatusSeeOther)
-	} else {
-		http.Error(w, "Ошибка ввода данных пользователя\n\tПовторите попытку!", http.StatusInternalServerError)
-		//http.Redirect(w, r, "/us/authentication", http.StatusSeeOther)
-	}
+		if rep > 0 {
+			//sessionId := sessionMem.Init(email)
+			cookie := &http.Cookie{
+				Name:    COOKIE,
+				Value:   key,
+				Expires: time.Now().Add(1 * time.Minute),
+			}
+			http.SetCookie(w, cookie)
+			http.Redirect(w, r, "/us/form/inputFile", http.StatusSeeOther)
+		} else {
+			http.ServeFile(w, r, "./templates/html/errlog.html")
 
+		}
+	}
 }
 
 func (app *application) authentication(w http.ResponseWriter, r *http.Request) {
@@ -64,26 +64,29 @@ func (app *application) authentication(w http.ResponseWriter, r *http.Request) {
 		}
 
 	}
-	email := r.FormValue("username")
-	password := r.FormValue("password")
-	fmt.Println(email, password)
-	rep, err := app.product.InputInfo(email, password)
-	if err != nil {
-		http.Error(w, "Ошибка регистрации пользователя\n\tПовторите попытку!", http.StatusInternalServerError)
-	}
-	if rep > 0 {
-		http.Error(w, "Пользователь с таким Email существует\n\tПовторите попытку или осуществите вход!", http.StatusConflict)
-		http.Redirect(w, r, "/signIn", http.StatusSeeOther)
-		//return
-	} else {
+	if r.Method == http.MethodPost {
+		email := r.FormValue("username")
+		password := r.FormValue("password")
 		sessionId := sessionMem.Init(email)
-		cookie := &http.Cookie{
-			Name:    COOKIE,
-			Value:   sessionId,
-			Expires: time.Now().Add(1 * time.Minute),
+		//fmt.Println(email, password)
+		rep, err := app.product.InputInfo(email, password, sessionId)
+		if err != nil {
+			http.Error(w, "Ошибка регистрации пользователя\n\tПовторите попытку!", http.StatusInternalServerError)
 		}
-		http.SetCookie(w, cookie)
-		http.Redirect(w, r, "/us/form/inputFile", http.StatusSeeOther)
+		if rep > 0 {
+			//http.Error(w, "Пользователь с таким Email существует\n\tПовторите попытку или осуществите вход!", http.StatusConflict)
+			//http.Redirect(w, r, "/signIn", http.StatusSeeOther)
+			http.ServeFile(w, r, "./templates/html/err.html")
+		} else {
+			//sessionId := sessionMem.Init(email)
+			//cookie := &http.Cookie{
+			//	Name:    COOKIE,
+			//	Value:   sessionId,
+			//	Expires: time.Now().Add(1 * time.Minute),
+			//}
+			//http.SetCookie(w, cookie)
+			http.Redirect(w, r, "/signIn", http.StatusSeeOther)
+		}
 	}
 }
 

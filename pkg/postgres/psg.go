@@ -15,9 +15,9 @@ type Auth struct {
 	us int
 }
 
-//type Sign struct {
-//	user int
-//}
+type Sign struct {
+	user int
+}
 
 type ListProd struct {
 	Products []Prod
@@ -37,16 +37,23 @@ type Prod struct {
 	Count int
 }
 
-func (s *ProductMod) CheckPassLogUser(user, pass string) (int, error) {
-	//sign := Sign{}
-	_, err := s.DB.Query("SELECT * FROM users WHERE email = $1 AND password_hash = $2", user, pass)
+func (s *ProductMod) CheckPassLogUser(user, pass string) (int, string, error) {
+	sign := Sign{}
+	var cookiKey string
+	err := s.DB.QueryRow("SELECT COUNT(*) FROM users WHERE email = $1 AND password_hash = $2", user, pass).Scan(&sign.user)
 	if err != nil {
-		return 1, err
+		return sign.user, "", err
 	}
-	return 0, err
+	if sign.user > 0 {
+		err := s.DB.QueryRow("SELECT cookie_key FROM users WHERE email = $1 AND password_hash = $2", user, pass).Scan(&cookiKey)
+		if err != nil {
+			return sign.user, "", err
+		}
+	}
+	return sign.user, cookiKey, nil
 }
 
-func (s *ProductMod) InputInfo(email, password_hash string) (int, error) {
+func (s *ProductMod) InputInfo(email, password_hash, cooki string) (int, error) {
 	auth := Auth{}
 	err := s.DB.QueryRow("SELECT COUNT(*) FROM users WHERE email = $1", email).Scan(&auth.us)
 	if err != nil {
@@ -55,7 +62,7 @@ func (s *ProductMod) InputInfo(email, password_hash string) (int, error) {
 	if auth.us > 0 {
 		return auth.us, nil
 	} else {
-		_, err := s.DB.Exec("INSERT INTO users (email,  password_hash) VALUES ($1, $2)", email, password_hash)
+		_, err := s.DB.Exec("INSERT INTO users (email,  password_hash,  cookie_key) VALUES ($1, $2, $3)", email, password_hash, cooki)
 		if err != nil {
 			return auth.us, err
 		}
